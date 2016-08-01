@@ -5,18 +5,87 @@ output:
     keep_md: true
 ---
 
+```{r echo=FALSE}
+library(dplyr)
+```
 
 ## Loading and preprocessing the data
 
+The first step is to load and preprocess the data.  Unzip the file to begin:
 
+```{r echo=TRUE}
+unzip("activity.zip")
+```
+
+Then, load the data into a data frame call `activity`:
+
+```{r echo=TRUE}
+activity <- read.csv("activity.csv")
+```
+
+Check the data frame to see if we need any processing or transformation:
+
+```{r echo=TRUE}
+str(activity)
+```
+
+It looks like the date column is stored as a factor, not a date.  Let's convert that to a date and group the data by date in a new data frame.  This used the `dplyr` package that is loaded without displaying to the screen.
+
+```{r echo=TRUE}
+activity$date <- as.Date(activity$date)
+
+activity_by_date <- group_by(activity, date)
+```
 
 ## What is mean total number of steps taken per day?
 
+First, let's create a variable, `total_steps`,  holding the total number of steps taken on each day.  We also rename the column header on the second column.
 
+```{r echo=TRUE}
+total_steps <- summarize(activity_by_date, sum(steps, na.rm = TRUE))
+names(total_steps)[2] <- "sum"
+
+total_steps
+```
+
+Here is a histogram of the total steps each day:
+
+```{r echo=TRUE}
+hist(total_steps$sum, xlab = "Total Steps on Each Day", main = "Histogram of Total Steps on Each Day")
+```
+
+The mean number of steps each day is:
+
+```{r echo=TRUE}
+mean(total_steps$sum)
+```
+
+The median number of steps each day is:
+
+```{r echo=TRUE}
+median(total_steps$sum)
+```
 
 ## What is the average daily activity pattern?
 
+Let's return to the original data frame and group on 5-minute interval this time.  Again, this uses the `dplyr` package.
 
+```{r echo=TRUE}
+activity_by_interval <- group_by(activity, interval)
+```
+
+Now, put the mean for each interval into a new variable, `mean_steps` and rename the mean column:
+
+```{r echo=TRUE}
+mean_steps <- summarize(activity_by_interval, mean(steps, na.rm = TRUE))
+names(mean_steps)[2] <- "mean"
+```
+
+Let's plot this variable in a time series to see how activity fluctuates throughout the day:
+
+```{r echo=TRUE}
+plot(mean_steps$interval, mean_steps$mean, type = "l", xlab = "5-Minute Interval", ylab = "Mean Number of Steps Across All Days", main = "Mean Number of Steps at 5-Minute Intervals")
+```
 
 ## Imputing missing values
 
